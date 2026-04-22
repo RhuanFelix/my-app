@@ -6,6 +6,7 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Ionicons } from '@expo/vector-icons';
+import EvilIcons from '@expo/vector-icons/EvilIcons';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -36,6 +37,20 @@ export default function TabLayout() {
         options={{
           title:"Universo",
           tabBarIcon: ({ color, size }) => (<Ionicons name="planet" size={size} color={color} />),
+        }}
+      />
+      <Tabs.Screen
+        name="PlanetasListScreen"
+        options={{
+          title:"Planetas",
+          tabBarIcon: ({ color, size }) => (<Ionicons name="planet" size={size} color={color} />),
+        }}
+      />
+      <Tabs.Screen
+        name="EstrelaListScreen"
+        options={{
+          title:"Estrela",
+          tabBarIcon: ({ color, size }) => (<EvilIcons name="star" size={size} color={color} />),
         }}
       />
     </Tabs>

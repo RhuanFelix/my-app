@@ -1,26 +1,27 @@
-import PlanetaModal from "@/components/modals/PlanetaModal";
+import Estrela from "@/components/estrela/Estrela";
+import EstrelaModal from "@/components/modals/EstrelaModal";
 import MyScrollView from "@/components/MyScrollView";
-import Planeta from "@/components/planeta/Planeta";
 import { ThemedView } from "@/components/themed-view";
-import { IPlaneta } from "@/interfaces/IPlaneta";
+import { IEstrela } from "@/interfaces/IEstrela";
 import { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity } from "react-native";
 
-export default function PlanetasListScreen() {
-  const [planetas, setPlanetas] = useState<IPlaneta[]>([]);
+
+export default function EstrelaListScreen() {
+  const [estrelas, setEstrelas] = useState<IEstrela[]>([]);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
 
-  const onAdd = (nome: string, tipo: string, nomeEstrela: string) => {
-    const novoPlaneta: IPlaneta = {
+  const onAdd = (nome: string, tipo: string, idade: number) => {
+    const novaEstrela: IEstrela = {
       id: Math.random() * 1000,
       nome: nome,
       tipo: tipo,
-      nomeEstrela: nomeEstrela,
+      idade: idade
     };
 
-    const novaListaPlanetas: IPlaneta[] = [...planetas, novoPlaneta];
+    const novaListaEstrela: IEstrela[] = [...estrelas, novaEstrela];
 
-    setPlanetas(novaListaPlanetas);
+    setEstrelas(novaListaEstrela);
     setModalVisible(false);
   };
 
@@ -36,20 +37,20 @@ export default function PlanetasListScreen() {
     <MyScrollView headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}>
       <ThemedView style={styles.headerContainer}>
         <TouchableOpacity onPress={() => openModal()}>
-          <Text style={styles.headerButton}>Novo Planeta</Text>
+          <Text style={styles.headerButton}>Nova Estrela</Text>
         </TouchableOpacity>
       </ThemedView>
       <ThemedView style={styles.container}>
-        {planetas.map((planeta) => (
-          <Planeta
-            key={planeta.id}
-            nome={planeta.nome}
-            tipo={planeta.tipo}
-            nomeEstrela={planeta.nomeEstrela}
+        {estrelas.map((estrela) => (
+          <Estrela
+            key={estrela.id}
+            nome={estrela.nome}
+            tipo={estrela.tipo}
+            idade={estrela.idade}
           />
         ))}
       </ThemedView>
-      <PlanetaModal
+      <EstrelaModal
         visibilidade={modalVisible}
         onCancel={closeModal}
         onAdd={onAdd}
