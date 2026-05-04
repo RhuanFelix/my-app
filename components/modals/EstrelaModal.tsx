@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { IEstrela } from "@/interfaces/IEstrela";
+import { useEffect, useState } from "react";
 import {
   Modal,
   StyleSheet,
@@ -10,18 +11,37 @@ import {
 
 export type EstrelaModalProps = {
   visibilidade: boolean;
-  onAdd: (nome: string, tipo: string, idade: number) => void;
+  onAdd: (nome: string, tipo: string, idade: number, id: number) => void;
   onCancel: () => void;
+  onDelete: (id: number) => void;
+  estrela?: IEstrela;
 };
 
 export default function EstrelaModal({
   visibilidade,
   onAdd,
   onCancel,
+  onDelete,
+  estrela,
 }: EstrelaModalProps) {
   const [nome, setNome] = useState("");
   const [tipo, setTipo] = useState("");
   const [idade, setIdade] = useState(0);
+  const [id, setId] = useState<number>(0);
+
+  useEffect(() => {
+    if (estrela) {
+      setNome(estrela.nome);
+      setTipo(estrela.tipo);
+      setIdade(estrela.idade);
+      setId(estrela.id);
+    } else {
+      setNome("");
+      setTipo("");
+      setIdade(0);
+      setId(0);
+    }
+  }, [estrela]);
 
   return (
     <Modal
@@ -54,7 +74,7 @@ export default function EstrelaModal({
           <View style={styles.buttonContainer}>
             <TouchableOpacity
               style={styles.buttonAdd}
-              onPress={() => onAdd(nome, tipo, idade)}
+              onPress={() => onAdd(nome, tipo, idade, id)}
             >
               <Text style={styles.buttonText}>Adicionar</Text>
             </TouchableOpacity>
@@ -63,6 +83,13 @@ export default function EstrelaModal({
               onPress={() => onCancel()}
             >
               <Text style={styles.buttonText}>Cancelar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.buttonDelete}
+              onPress={() => onDelete(id)}
+              disabled={id <= 0}
+            >
+              <Text style={styles.buttonText}>Deletar</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -99,6 +126,15 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   buttonCancel: {
+    backgroundColor: "orange",
+    borderRadius: 5,
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    margin: 10,
+    padding: 20,
+  },
+  buttonDelete: {
     backgroundColor: "red",
     borderRadius: 5,
     flex: 1,

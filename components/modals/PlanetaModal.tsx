@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { IPlaneta } from "@/interfaces/IPlaneta";
+import { useEffect, useState } from "react";
 import {
   Modal,
   StyleSheet,
@@ -10,18 +11,37 @@ import {
 
 export type PlanetaModal = {
   visibilidade: boolean;
-  onAdd: (nome: string, tipo: string, nomeEstrela: string) => void;
+  onAdd: (nome: string, tipo: string, nomeEstrela: string, id: number) => void;
   onCancel: () => void;
+  onDelete: (id: number) => void;
+  planeta?: IPlaneta;
 };
 
 export default function PlanetaModal({
   visibilidade,
   onAdd,
   onCancel,
+  onDelete,
+  planeta,
 }: PlanetaModal) {
   const [nome, setNome] = useState("");
   const [tipo, setTipo] = useState("");
   const [nomeEstrela, setNomeEstrela] = useState("");
+  const [id, setId] = useState<number>(0);
+
+  useEffect(() => {
+    if (planeta) {
+      setNome(planeta.nome);
+      setTipo(planeta.tipo);
+      setNomeEstrela(planeta.nomeEstrela);
+      setId(planeta.id);
+    } else {
+      setNome("");
+      setTipo("");
+      setNomeEstrela("");
+      setId(0);
+    }
+  }, [planeta]);
 
   return (
     <Modal
@@ -54,7 +74,7 @@ export default function PlanetaModal({
           <View style={styles.buttonContainer}>
             <TouchableOpacity
               style={styles.buttonAdd}
-              onPress={() => onAdd(nome, tipo, nomeEstrela)}
+              onPress={() => onAdd(nome, tipo, nomeEstrela, id)}
             >
               <Text style={styles.buttonText}>Adicionar</Text>
             </TouchableOpacity>
@@ -63,6 +83,13 @@ export default function PlanetaModal({
               onPress={() => onCancel()}
             >
               <Text style={styles.buttonText}>Cancelar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.buttonDelete}
+              onPress={() => onDelete(id)}
+              disabled={id <= 0}
+            >
+              <Text style={styles.buttonText}>Deletar</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -99,6 +126,15 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   buttonCancel: {
+    backgroundColor: "orange",
+    borderRadius: 5,
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    margin: 10,
+    padding: 20,
+  },
+  buttonDelete: {
     backgroundColor: "red",
     borderRadius: 5,
     flex: 1,
