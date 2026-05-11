@@ -3,13 +3,53 @@ import MyScrollView from "@/components/MyScrollView";
 import Planeta from "@/components/planeta/Planeta";
 import { ThemedView } from "@/components/themed-view";
 import { IPlaneta } from "@/interfaces/IPlaneta";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Location from "expo-location";
 
 export default function PlanetasListScreen() {
   const [planetas, setPlanetas] = useState<IPlaneta[]>([]);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [planetaSelecionado, setPlanetaSelecionado] = useState<IPlaneta>();
+
+  const [location, setLocation] = useState({});
+  const [errorMsg, setErrorMsg] = useState("");
+
+  useEffect(() => {
+    async function getData() {
+      try {
+        const data = await AsyncStorage.getItem("@Planetas:planetas");
+        const planetasData = data != null ? JSON.parse(data) : [];
+        setPlanetas(planetasData);
+      } catch (error) {
+        console.error(error);
+        
+      }
+    }
+    getData();
+  }, [])
+
+  useEffect(() => {
+    async function getLocalizacao() {
+      let {status} = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        setErrorMsg("O acesso ao local foi negado");
+        return;
+      }
+
+      let location = await Location.getCurrentPositionAsync({});
+      setLocation(location);
+    }
+    getLocalizacao()
+  }, [])
+
+  let texto = "esperando...";
+  if (errorMsg) {
+    texto = errorMsg;
+  } else if (location) {
+    texto = JSON.stringify(location);
+  }
 
   const onAdd = (
     nome: string,
@@ -28,6 +68,7 @@ export default function PlanetasListScreen() {
       const novaListaPlanetas: IPlaneta[] = [...planetas, novoPlaneta];
 
       setPlanetas(novaListaPlanetas);
+      AsyncStorage.setItem("@Planetas:planetas", JSON.stringify(novaListaPlanetas))
     } else {
       planetas.forEach((planeta) => {
         if (planeta.id === id) {
@@ -38,6 +79,7 @@ export default function PlanetasListScreen() {
       });
 
       setPlanetas([...planetas])
+      AsyncStorage.setItem("@Planetas:planetas", JSON.stringify(planetas))
     }
     setModalVisible(false);
   };
@@ -53,6 +95,7 @@ export default function PlanetasListScreen() {
       }
 
       setPlanetas(novosPlanetas);
+      AsyncStorage.setItem("@Planetas:planetas", JSON.stringify(novosPlanetas))
       setModalVisible(false);
     }
   };
@@ -77,6 +120,7 @@ export default function PlanetasListScreen() {
         <TouchableOpacity onPress={() => openModal()}>
           <Text style={styles.headerButton}>Novo Planeta</Text>
         </TouchableOpacity>
+        <Text style={styles.headerButton}>{texto}</Text>
       </ThemedView>
       <ThemedView style={styles.container}>
         {planetas.map((planeta) => (

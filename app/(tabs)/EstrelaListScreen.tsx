@@ -3,13 +3,53 @@ import EstrelaModal from "@/components/modals/EstrelaModal";
 import MyScrollView from "@/components/MyScrollView";
 import { ThemedView } from "@/components/themed-view";
 import { IEstrela } from "@/interfaces/IEstrela";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Location from "expo-location";
 
 export default function EstrelaListScreen() {
   const [estrelas, setEstrelas] = useState<IEstrela[]>([]);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [estrelaSelecionada, setEstrelaSelecionada] = useState<IEstrela>();
+
+  const [location, setLocation] = useState({});
+  const [errorMsg, setErrorMsg] = useState("");
+
+  useEffect(() => {
+    async function getData() {
+      try {
+        const data = await AsyncStorage.getItem("@Estrelas:estrelas");
+        const estrelaData = data != null ? JSON.parse(data) : [];
+        setEstrelas(estrelaData);
+      } catch (error) {
+        console.error(error);
+        
+      }
+    }
+    getData();
+  }, [])
+
+  useEffect(() => {
+    async function getLocalizacao() {
+      let {status} = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        setErrorMsg("O acesso ao local foi negado");
+        return;
+      }
+
+      let location = await Location.getCurrentPositionAsync({});
+      setLocation(location);
+    }
+    getLocalizacao()
+  }, [])
+
+  let texto = "esperando...";
+  if (errorMsg) {
+    texto = errorMsg;
+  } else if (location) {
+    texto = JSON.stringify(location);
+  }
 
   const onAdd = (nome: string, tipo: string, idade: number, id?: number) => {
     if (!id || id <= 0) {
@@ -23,6 +63,7 @@ export default function EstrelaListScreen() {
       const novaListaEstrela: IEstrela[] = [...estrelas, novaEstrela];
 
       setEstrelas(novaListaEstrela);
+      AsyncStorage.setItem("@Estrelas:estrelas", JSON.stringify(novaListaEstrela))
     } else {
       estrelas.forEach((estrela) => {
         if (estrela.id === id) {
@@ -32,6 +73,7 @@ export default function EstrelaListScreen() {
         }
       });
       setEstrelas([...estrelas])
+      AsyncStorage.setItem("@Estrelas:estrelas", JSON.stringify(estrelas))
     }
     setModalVisible(false);
   };
@@ -47,6 +89,7 @@ export default function EstrelaListScreen() {
       }
 
       setEstrelas(novasEstrelas);
+      AsyncStorage.setItem("@Planetas:planetas", JSON.stringify(novosPlanetas))
       setModalVisible(false);
     }
   };
@@ -71,6 +114,7 @@ export default function EstrelaListScreen() {
         <TouchableOpacity onPress={() => openModal()}>
           <Text style={styles.headerButton}>Nova Estrela</Text>
         </TouchableOpacity>
+        <Text style={styles.headerButton}>{texto}</Text>
       </ThemedView>
       <ThemedView style={styles.container}>
         {estrelas.map((estrela) => (
