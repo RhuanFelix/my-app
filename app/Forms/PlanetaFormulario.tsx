@@ -1,4 +1,5 @@
-import { IEstrela } from "@/interfaces/IEstrela";
+import { IPlaneta } from "@/interfaces/IPlaneta";
+import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   StyleSheet,
@@ -7,40 +8,45 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export type EstrelaModalProps = {
-  visibilidade: boolean;
-  onAdd: (nome: string, tipo: string, idade: number, id: number) => void;
-  onCancel: () => void;
-  onDelete: (id: number) => void;
-  estrela?: IEstrela;
-};
-
-export default function EstrelaModal({
-  visibilidade,
-  onAdd,
-  onCancel,
-  onDelete,
-  estrela,
-}: EstrelaModalProps) {
+export default function PlanetaFormulario() {
   const [nome, setNome] = useState("");
   const [tipo, setTipo] = useState("");
-  const [idade, setIdade] = useState(0);
+  const [nomeEstrela, setNomeEstrela] = useState("");
+  const [planetas, setPlanetas] = useState<IPlaneta[]>([]);
   const [id, setId] = useState<number>(0);
 
   useEffect(() => {
-    if (estrela) {
-      setNome(estrela.nome);
-      setTipo(estrela.tipo);
-      setIdade(estrela.idade);
-      setId(estrela.id);
-    } else {
-      setNome("");
-      setTipo("");
-      setIdade(0);
-      setId(0);
+    async function getData() {
+      try {
+        const data = await AsyncStorage.getItem("@Planetas:planetas");
+        const planetasData = data != null ? JSON.parse(data) : [];
+        setPlanetas(planetasData);
+      } catch (error) {
+        console.error(error);
+      }
     }
-  }, [estrela]);
+    getData();
+  }, [])
+
+  const navigateToPlanetasListScreen = () => {
+    router.replace("/PlanetasListScreen");
+  };
+
+  const onAdd = (nome: string, tipo: string,nomeEstrela: string, id?: number) => {
+      const novoPlaneta: IPlaneta = {
+        id: Math.random() * 1000,
+        nome: nome,
+        tipo: tipo,
+        nomeEstrela: nomeEstrela,
+      };
+
+      const novaListaPlanetas: IPlaneta[] = [...planetas, novoPlaneta];
+
+      setPlanetas(novaListaPlanetas);
+      AsyncStorage.setItem("@Planetas:planetas", JSON.stringify(novaListaPlanetas))
+  };
 
   return (
     <View style={styles.boxContainer}>
@@ -59,20 +65,23 @@ export default function EstrelaModal({
       />
       <TextInput
         style={styles.boxInput}
-        value={idade.toString()}
-        onChangeText={(text) => setIdade(Number(text))}
-        placeholder="idade"
+        value={nomeEstrela}
+        onChangeText={(text) => setNomeEstrela(text)}
+        placeholder="nome da estrela"
       />
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={styles.buttonAdd}
-          onPress={() => onAdd(nome, tipo, idade, id)}
+          onPress={() => {
+            onAdd(nome, tipo, nomeEstrela, id);
+            navigateToPlanetasListScreen();
+          }}
         >
           <Text style={styles.buttonText}>Adicionar</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.buttonCancel}
-          onPress={() => onCancel()}
+          onPress={() => navigateToPlanetasListScreen()}
         >
           <Text style={styles.buttonText}>Cancelar</Text>
         </TouchableOpacity>
@@ -90,7 +99,7 @@ const styles = StyleSheet.create({
   },
   boxContainer: {
     backgroundColor: "#fff",
-    height: "100%"
+    height: "100%",
   },
   buttonText: {
     fontWeight: "bold",

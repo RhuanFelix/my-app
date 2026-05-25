@@ -1,5 +1,4 @@
 import Estrela from "@/components/estrela/Estrela";
-import EstrelaModal from "@/components/modals/EstrelaModal";
 import MyScrollView from "@/components/MyScrollView";
 import { ThemedView } from "@/components/themed-view";
 import { IEstrela } from "@/interfaces/IEstrela";
@@ -7,11 +6,10 @@ import { useEffect, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Location from "expo-location";
+import { router } from "expo-router";
 
 export default function EstrelaListScreen() {
   const [estrelas, setEstrelas] = useState<IEstrela[]>([]);
-  const [modalVisible, setModalVisible] = useState<boolean>(false);
-  const [estrelaSelecionada, setEstrelaSelecionada] = useState<IEstrela>();
 
   const [location, setLocation] = useState({});
   const [errorMsg, setErrorMsg] = useState("");
@@ -51,74 +49,25 @@ export default function EstrelaListScreen() {
     texto = JSON.stringify(location);
   }
 
-  const onAdd = (nome: string, tipo: string, idade: number, id?: number) => {
-    if (!id || id <= 0) {
-      const novaEstrela: IEstrela = {
-        id: Math.random() * 1000,
-        nome: nome,
-        tipo: tipo,
-        idade: idade,
-      };
-
-      const novaListaEstrela: IEstrela[] = [...estrelas, novaEstrela];
-
-      setEstrelas(novaListaEstrela);
-      AsyncStorage.setItem("@Estrelas:estrelas", JSON.stringify(novaListaEstrela))
-    } else {
-      estrelas.forEach((estrela) => {
-        if (estrela.id === id) {
-          estrela.nome = nome;
-          estrela.tipo = tipo;
-          estrela.idade = idade;
-        }
-      });
-      setEstrelas([...estrelas])
-      AsyncStorage.setItem("@Estrelas:estrelas", JSON.stringify(estrelas))
-    }
-    setModalVisible(false);
+  const navigateToDetails = (estrelaSelecionada: IEstrela) => {
+    router.push({pathname: "/Screens/EstrelaDetailScreen", params:{estrelaId: estrelaSelecionada.id}})
   };
 
-  const onDelete = (id: number) => {
-    const novasEstrelas: Array<IEstrela> = [];
-
-    for (let index = 0; index < estrelas.length; index++) {
-      const estrela = estrelas[index];
-
-      if (estrela.id !== id) {
-        novasEstrelas.push(estrela);
-      }
-
-      setEstrelas(novasEstrelas);
-      AsyncStorage.setItem("@Planetas:planetas", JSON.stringify(novosPlanetas))
-      setModalVisible(false);
-    }
-  };
-
-  const openModal = () => {
-    setEstrelaSelecionada(undefined);
-    setModalVisible(true);
-  };
-
-  const openEditModal = (estrelaSelecionada: IEstrela) => {
-    setEstrelaSelecionada(estrelaSelecionada);
-    setModalVisible(true);
-  };
-
-  const closeModal = () => {
-    setModalVisible(false);
-  };
+  const navigateToForm = () => {
+    router.push({pathname: "/Forms/EstrelaFormulario"})
+  }
 
   return (
     <MyScrollView headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}>
       <ThemedView style={styles.headerContainer}>
-        <TouchableOpacity onPress={() => openModal()}>
+        <TouchableOpacity onPress={() => navigateToForm()}>
           <Text style={styles.headerButton}>Nova Estrela</Text>
         </TouchableOpacity>
         <Text style={styles.headerButton}>{texto}</Text>
       </ThemedView>
       <ThemedView style={styles.container}>
         {estrelas.map((estrela) => (
-          <TouchableOpacity key={estrela.id} onPress={() => openEditModal(estrela)}>
+          <TouchableOpacity key={estrela.id} onPress={() => navigateToDetails(estrela)}>
             <Estrela
               key={estrela.id}
               nome={estrela.nome}
@@ -128,13 +77,6 @@ export default function EstrelaListScreen() {
           </TouchableOpacity>
         ))}
       </ThemedView>
-      <EstrelaModal
-        visibilidade={modalVisible}
-        onCancel={closeModal}
-        onAdd={onAdd}
-        onDelete={onDelete}
-        estrela={estrelaSelecionada}
-      />
     </MyScrollView>
   );
 }

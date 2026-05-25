@@ -1,4 +1,3 @@
-import PlanetaModal from "@/components/modals/PlanetaModal";
 import MyScrollView from "@/components/MyScrollView";
 import Planeta from "@/components/planeta/Planeta";
 import { ThemedView } from "@/components/themed-view";
@@ -7,11 +6,10 @@ import { useEffect, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Location from "expo-location";
+import { router } from "expo-router";
 
 export default function PlanetasListScreen() {
   const [planetas, setPlanetas] = useState<IPlaneta[]>([]);
-  const [modalVisible, setModalVisible] = useState<boolean>(false);
-  const [planetaSelecionado, setPlanetaSelecionado] = useState<IPlaneta>();
 
   const [location, setLocation] = useState({});
   const [errorMsg, setErrorMsg] = useState("");
@@ -51,80 +49,25 @@ export default function PlanetasListScreen() {
     texto = JSON.stringify(location);
   }
 
-  const onAdd = (
-    nome: string,
-    tipo: string,
-    nomeEstrela: string,
-    id?: number,
-  ) => {
-    if (!id || id <= 0) {
-      const novoPlaneta: IPlaneta = {
-        id: Math.random() * 1000,
-        nome: nome,
-        tipo: tipo,
-        nomeEstrela: nomeEstrela,
-      };
-
-      const novaListaPlanetas: IPlaneta[] = [...planetas, novoPlaneta];
-
-      setPlanetas(novaListaPlanetas);
-      AsyncStorage.setItem("@Planetas:planetas", JSON.stringify(novaListaPlanetas))
-    } else {
-      planetas.forEach((planeta) => {
-        if (planeta.id === id) {
-          planeta.nome = nome;
-          planeta.tipo = tipo;
-          planeta.nomeEstrela = nomeEstrela;
-        }
-      });
-
-      setPlanetas([...planetas])
-      AsyncStorage.setItem("@Planetas:planetas", JSON.stringify(planetas))
-    }
-    setModalVisible(false);
+  const navigateToDetails = (planetaSelecionado: IPlaneta) => {
+    router.push({pathname: "/Screens/PlanetaDetailScreen", params:{planetaId: planetaSelecionado.id}})
   };
 
-  const onDelete = (id: number) => {
-    const novosPlanetas: Array<IPlaneta> = [];
-
-    for (let index = 0; index < planetas.length; index++) {
-      const planeta = planetas[index];
-
-      if (planeta.id !== id) {
-        novosPlanetas.push(planeta);
-      }
-
-      setPlanetas(novosPlanetas);
-      AsyncStorage.setItem("@Planetas:planetas", JSON.stringify(novosPlanetas))
-      setModalVisible(false);
-    }
-  };
-
-  const openModal = () => {
-    setPlanetaSelecionado(undefined);
-    setModalVisible(true);
-  };
-
-  const openEditModal = (planetaselecionada: IPlaneta) => {
-    setPlanetaSelecionado(planetaselecionada);
-    setModalVisible(true);
-  };
-
-  const closeModal = () => {
-    setModalVisible(false);
-  };
+  const navigateToForm = () => {
+    router.push({pathname: "/Forms/PlanetaFormulario"})
+  }
 
   return (
     <MyScrollView headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}>
       <ThemedView style={styles.headerContainer}>
-        <TouchableOpacity onPress={() => openModal()}>
+        <TouchableOpacity onPress={() => navigateToForm()}>
           <Text style={styles.headerButton}>Novo Planeta</Text>
         </TouchableOpacity>
         <Text style={styles.headerButton}>{texto}</Text>
       </ThemedView>
       <ThemedView style={styles.container}>
         {planetas.map((planeta) => (
-          <TouchableOpacity key={planeta.id} onPress={() => openEditModal(planeta)}>
+          <TouchableOpacity key={planeta.id} onPress={() => navigateToDetails(planeta)}>
             <Planeta
               nome={planeta.nome}
               tipo={planeta.tipo}
@@ -133,13 +76,6 @@ export default function PlanetasListScreen() {
           </TouchableOpacity>
         ))}
       </ThemedView>
-      <PlanetaModal
-        visibilidade={modalVisible}
-        onCancel={closeModal}
-        onAdd={onAdd}
-        onDelete={onDelete}
-        planeta={planetaSelecionado}
-      />
     </MyScrollView>
   );
 }
